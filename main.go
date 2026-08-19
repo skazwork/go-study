@@ -18,7 +18,7 @@ func main() {
 }
 
 func findAndPrint(serv product.Service, code string) {
-	p, err := serv.Get("mouse")
+	p, err := serv.Get(code)
 	if errors.Is(err, product.ErrNotFound) {
 		fmt.Println("404")
 		return

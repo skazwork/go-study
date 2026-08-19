@@ -14,15 +14,16 @@ func main() {
 	repo := product.NewMemoryRepository(products)
 	service := product.NewService(repo)
 
-	findAndPrint(*service, "mouse")
+	findAndPrint(service, "mouse")
 }
 
-func findAndPrint(serv product.Service, code string) {
+func findAndPrint(serv product.ProductGetter, code string) {
 	p, err := serv.Get(code)
 	if errors.Is(err, product.ErrNotFound) {
 		fmt.Println("404")
 		return
-	} else if err != nil {
+	}
+	if err != nil {
 		fmt.Println("fatal error")
 		return
 	}

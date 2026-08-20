@@ -14,53 +14,59 @@ func (r fakeRepository) Find(code string) (Product, error) {
 	return r.product, r.err
 }
 
-func TestServiceGetSuccess(t *testing.T) {
-	repo := fakeRepository{
-		product: NewProduct("mouse", 5000, 2),
-		err:     nil,
+func TestServiceGet(t *testing.T) {
+	tests := []struct {
+		name        string
+		repoProduct Product
+		repoErr     error
+		code        string
+		wantName    string
+		wantErr     error
+	}{
+		{
+			name:        "success",
+			repoProduct: NewProduct("Mouse", 5000, 2),
+			repoErr:     nil,
+			code:        "mouse",
+			wantName:    "Mouse",
+			wantErr:     nil,
+		},
+		{
+			name:        "not found",
+			repoProduct: Product{},
+			repoErr:     ErrNotFound,
+			code:        "iphone",
+			wantErr:     ErrNotFound,
+		},
+		{
+			name:        "out of stock",
+			repoProduct: NewProduct("iPhone", 100000, 0),
+			repoErr:     nil,
+			code:        "iphone",
+			wantErr:     ErrOutOfStock,
+		},
 	}
 
-	service := NewService(repo)
-	p, err := service.Get("mouse")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := fakeRepository{
+				product: tt.repoProduct,
+				err:     tt.repoErr,
+			}
 
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+			service := NewService(repo)
 
-	if p.Name != "mouse" {
-		t.Errorf("expected Mouse, got %s", p.Name)
-	}
-}
+			p, err := service.Get(tt.code)
 
-func TestServiceGetNotFound(t *testing.T) {
-	repo := fakeRepository{
-		product: Product{},
-		err:     ErrNotFound,
-	}
-
-	service := NewService(repo)
-	_, err := service.Get("Mouse")
-	if !errors.Is(err, ErrNotFound) {
-		t.Errorf("expected ErrNotFound, got %v", err)
-	}
-	if err == nil {
-		t.Errorf("expected ErrNotFound, got no errors")
-	}
-}
-
-func TestServiceGetOutOfStock(t *testing.T) {
-	repo := fakeRepository{
-		product: NewProduct("iPhone", 100000, 0),
-		err:     nil,
-	}
-
-	service := NewService(repo)
-	_, err := service.Get("iPhone")
-
-	if !errors.Is(err, ErrOutOfStock) {
-		t.Errorf("expected out of stock error, got %v", repo.err)
-	}
-	if err == nil {
-		t.Errorf("expected ErrOutOfStock, got no errors")
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("expected error %v, got %v", tt.wantErr, err)
+				}
+			} else {
+				if p.Name != tt.wantName {
+					t.Errorf("expected name %s, got %s", tt.wantName, p.Name)
+				}
+			}
+		})
 	}
 }

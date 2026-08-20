@@ -59,14 +59,23 @@ func TestServiceGet(t *testing.T) {
 			p, err := service.Get(tt.code)
 
 			if tt.wantErr != nil {
-				if !errors.Is(err, tt.wantErr) {
-					t.Errorf("expected error %v, got %v", tt.wantErr, err)
-				}
+				assertErrorIs(t, err, tt.wantErr)
 			} else {
+				if err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
 				if p.Name != tt.wantName {
 					t.Errorf("expected name %s, got %s", tt.wantName, p.Name)
 				}
 			}
 		})
+	}
+}
+
+func assertErrorIs(t *testing.T, got error, want error) {
+	t.Helper()
+
+	if !errors.Is(got, want) {
+		t.Errorf("expected error %v, got %v", want, got)
 	}
 }

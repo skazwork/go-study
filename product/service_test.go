@@ -39,28 +39,28 @@ func TestServiceGetNotFound(t *testing.T) {
 	}
 
 	service := NewService(repo)
-	p, err := service.Get("Mouse")
+	_, err := service.Get("Mouse")
 	if !errors.Is(err, ErrNotFound) {
-		t.Errorf("expected Mouse, got %s", p.Name)
+		t.Errorf("expected ErrNotFound, got %v", err)
 	}
 	if err == nil {
-		t.Errorf("expected Mouse, got no errors")
+		t.Errorf("expected ErrNotFound, got no errors")
 	}
 }
 
 func TestServiceGetOutOfStock(t *testing.T) {
 	repo := fakeRepository{
 		product: NewProduct("iPhone", 100000, 0),
-		err:     ErrOutOfStock,
+		err:     nil,
 	}
 
 	service := NewService(repo)
-	_, err := service.Get("Mouse")
+	_, err := service.Get("iPhone")
 
-	if !errors.Is(repo.err, ErrOutOfStock) {
+	if !errors.Is(err, ErrOutOfStock) {
 		t.Errorf("expected out of stock error, got %v", repo.err)
 	}
 	if err == nil {
-		t.Errorf("expected Mouse, got no errors")
+		t.Errorf("expected ErrOutOfStock, got no errors")
 	}
 }
